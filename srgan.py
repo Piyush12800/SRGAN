@@ -1,6 +1,7 @@
 import torch
 import math
 import torch.nn as nn
+torch.autograd.set_detect_anomaly(True)
 
 
 class ResidualBlock(nn.Module):
@@ -117,4 +118,9 @@ class Discriminator(nn.Module):
 
     def forward(self, x):
         batch_size = x.size(0)
-        return torch.sigmoid(self.net(x).view(batch_size))
+        x = self.net(x)
+        x = x.view(batch_size, -1)  # Reshape x without modifying it in-place
+        x = torch.sigmoid(x)
+        return x
+
+
