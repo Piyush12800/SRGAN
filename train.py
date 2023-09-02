@@ -70,14 +70,12 @@ if __name__ == "__main__":
             if torch.cuda.is_available():
                 z = z.cuda()
             fake_img = netG(z)
-
+            # Update D network
             netD.zero_grad()
             real_out = netD(real_img).mean()
             fake_out = netD(fake_img).mean()
             d_loss = 1 - real_out + fake_out
-            d_loss.backward(retain_graph=True)
-            optimizerD.step()
-
+            d_loss.backward(retain_graph=True)  # Specify retain_graph=True
 
             # Update G network 
             netG.zero_grad()
@@ -85,13 +83,14 @@ if __name__ == "__main__":
             g_loss.backward()
 
             optimizerG.step()
+            optimizerD.step()  # You can move this line here to update the discriminator after computing both losses
 
             # loss for current batch before optimization
-
             running_results['g_loss'] += g_loss.item() * batch_size
             running_results['d_loss'] += d_loss.item() * batch_size
             running_results['d_score'] += real_out.item() * batch_size
             running_results['g_score'] += fake_out.item() * batch_size
+
 
             train_bar.set_description(desc='[%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f' % (
                 epoch, NUM_EPOCHS, running_results['d_loss'] / running_results['batch_sizes'], 
